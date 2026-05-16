@@ -105,8 +105,7 @@ public struct NetworkImageView: View {
                         KFImage(fallbackURL)
                             .resizable()
                     } else {
-                        Image(systemName: "pencil")
-                            .resizable()
+                        Color.gray
                             .foregroundStyle(.secondary)
                             .saturation(fallBackGrey ? 0 : 1)
                     }
