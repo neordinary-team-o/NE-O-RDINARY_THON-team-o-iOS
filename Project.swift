@@ -24,6 +24,7 @@ let project = Project(
                     .string("Pretendard-SemiBold.otf"),
                     .string("Pretendard-Thin.otf"),
                 ]),
+                "UIUserInterfaceStyle": .string("Dark")
             ]),
             sources: ["App/Sources/**"],
             resources: [
