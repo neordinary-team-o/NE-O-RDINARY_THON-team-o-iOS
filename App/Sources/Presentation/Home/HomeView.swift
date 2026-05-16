@@ -10,7 +10,6 @@ import PopupView
 
 struct HomeView: View {
     @Environment(\.navRouter) private var router
-    @Environment(\.safeAreaInsets) private var safeArea
 
     @StateObject private var store = StoreOf<HomeReducer>(
         initialState: HomeReducer.State(),
@@ -48,33 +47,8 @@ struct HomeView: View {
                 .ignoresSafeArea()
                 .onTapGesture(perform: dismissKeyboard)
         }
-        .popup(isPresented: musicCardPresentedBinding) {
-            musicCardPopup
-        } customize: {
-            $0
-                .type(.floater())
-                .position(.bottom)
-                .appearFrom(.bottomSlide)
-                .dragToDismiss(true)
-                .closeOnTap(false)
-                .closeOnTapOutside(true)
-                .backgroundColor(AppColor.GrayScaleBlack.color.opacity(0.45))
-                .displayMode(.overlay)
-                .animation(.bouncy)
-        }
-        .popup(isPresented: musicCardSharePopupPresentedBinding) {
-            musicCardSharePopup
-        } customize: {
-            $0
-                .type(.floater())
-                .position(.bottom)
-                .appearFrom(.bottomSlide)
-                .dragToDismiss(true)
-                .closeOnTap(false)
-                .closeOnTapOutside(true)
-                .backgroundColor(AppColor.GrayScaleBlack.color.opacity(0.45))
-                .displayMode(.overlay)
-                .animation(.bouncy)
+        .fullScreenCover(isPresented: pickCompletePresentedBinding) {
+            pickCompleteCover
         }
         .popup(isPresented: challengeStartPopupPresentedBinding) {
             challengeStartPopup
@@ -165,70 +139,27 @@ struct HomeView: View {
         .frame(maxWidth: .infinity)
     }
 
-
     @ViewBuilder
-    private var musicCardPopup: some View {
-        if let selectedMusicCard = store.state.selectedMusicCard {
-            MusicCard(
-                entity: selectedMusicCard,
-                reviewText: musicCardReviewTextBinding,
-                isReviewCompleted: musicCardReviewCompletedBinding,
-                onReviewSendTap: { reviewText in
-                    store.send(.musicCardReviewSubmitted(reviewText))
+    private var pickCompleteCover: some View {
+        if let selectedPickComplete = store.state.selectedPickComplete {
+            PickCompleteView(
+                entity: selectedPickComplete,
+                onClose: {
+                    store.send(.pickCompleteDismissed)
                 },
-                onReviewEditTap: {
-                    store.send(.musicCardReviewEditTapped)
-                },
-                onShareTap: {
-                    dismissKeyboard()
-                    store.send(.musicCardShareTapped)
-                },
-                onCloseTap: {
-                    store.send(.musicCardDismissed)
+                onCheck: {
+                    store.send(.pickCompleteDismissed)
                 }
             )
-            .padding(.horizontal, AppSpacing.lg)
-            .padding(.bottom, safeArea.bottom)
         }
     }
 
-
-    private var musicCardReviewTextBinding: Binding<String> {
+    private var pickCompletePresentedBinding: Binding<Bool> {
         Binding(
-            get: { store.state.musicCardReviewText },
-            set: { store.send(.musicCardReviewTextChanged($0)) }
-        )
-    }
-
-    private var musicCardReviewCompletedBinding: Binding<Bool> {
-        Binding(
-            get: { store.state.isMusicCardReviewCompleted },
-            set: { isCompleted in
-                if !isCompleted {
-                    store.send(.musicCardReviewEditTapped)
-                }
-            }
-        )
-    }
-
-    private var musicCardSharePopup: some View {
-        HomePopupView(
-            data: .mock,
-            onShareTap: {},
-            onCloseTap: {
-                store.send(.musicCardSharePopupDismissed)
-            }
-        )
-        .padding(.horizontal, AppSpacing.lg)
-        .padding(.bottom, safeArea.bottom)
-    }
-
-    private var musicCardSharePopupPresentedBinding: Binding<Bool> {
-        Binding(
-            get: { store.state.isMusicCardSharePopupPresented },
+            get: { store.state.selectedPickComplete != nil },
             set: { isPresented in
                 if !isPresented {
-                    store.send(.musicCardSharePopupDismissed)
+                    store.send(.pickCompleteDismissed)
                 }
             }
         )
@@ -261,17 +192,6 @@ struct HomeView: View {
             set: { isPresented in
                 if !isPresented {
                     store.send(.challengeStartPopupDismissed)
-                }
-            }
-        )
-    }
-
-    private var musicCardPresentedBinding: Binding<Bool> {
-        Binding(
-            get: { store.state.selectedMusicCard != nil },
-            set: { isPresented in
-                if !isPresented {
-                    store.send(.musicCardDismissed)
                 }
             }
         )

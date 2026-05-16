@@ -33,10 +33,7 @@ struct HomeReducer: Reducer {
         var searchText = ""
         var searchResult: HomeSearchResultItem?
         var musicGridItems = MusicGridItem.mock
-        var selectedMusicCard: MusicCardEntity?
-        var musicCardReviewText = ""
-        var isMusicCardReviewCompleted = false
-        var isMusicCardSharePopupPresented = false
+        var selectedPickComplete: PickCompleteEntity?
         var isChallengeStartPopupPresented = false
 
         var hasSearchResult: Bool {
@@ -48,12 +45,7 @@ struct HomeReducer: Reducer {
         case searchTextChanged(String)
         case searchResultDiscoverTapped
         case musicItemTapped(MusicGridItem)
-        case musicCardDismissed
-        case musicCardReviewTextChanged(String)
-        case musicCardReviewSubmitted(String)
-        case musicCardReviewEditTapped
-        case musicCardShareTapped
-        case musicCardSharePopupDismissed
+        case pickCompleteDismissed
         case challengeStartPopupDismissed
     }
 
@@ -71,34 +63,12 @@ struct HomeReducer: Reducer {
                 return .none
 
             case let .musicItemTapped(item):
-                state.selectedMusicCard = .mock
+                guard item.kind != .empty else { return .none }
+                state.selectedPickComplete = Self.pickCompleteEntity(from: item)
                 return .none
 
-            case .musicCardDismissed:
-                state.selectedMusicCard = nil
-                state.isMusicCardSharePopupPresented = false
-                return .none
-
-            case let .musicCardReviewTextChanged(text):
-                state.musicCardReviewText = text
-                state.isMusicCardReviewCompleted = false
-                return .none
-
-            case let .musicCardReviewSubmitted(text):
-                state.musicCardReviewText = text
-                state.isMusicCardReviewCompleted = true
-                return .none
-
-            case .musicCardReviewEditTapped:
-                state.isMusicCardReviewCompleted = false
-                return .none
-
-            case .musicCardShareTapped:
-                state.isMusicCardSharePopupPresented = true
-                return .none
-
-            case .musicCardSharePopupDismissed:
-                state.isMusicCardSharePopupPresented = false
+            case .pickCompleteDismissed:
+                state.selectedPickComplete = nil
                 return .none
 
             case .challengeStartPopupDismissed:
@@ -106,6 +76,66 @@ struct HomeReducer: Reducer {
                 return .none
 
             }
+        }
+    }
+
+    private static func pickCompleteEntity(from item: MusicGridItem) -> PickCompleteEntity {
+        PickCompleteEntity(
+            id: item.id,
+            artworkURL: item.imageURL,
+            fallbackImageName: nil,
+            musicTitle: item.title,
+            artistName: artistName(for: item),
+            discoveredDateLabel: "발굴일",
+            discoveredDate: "24.03.15",
+            elapsedTime: "8개월 경과",
+            successDescription: "당신이 12,400명이 듣던 시절 발견한 음악이 지금 5,800만명에게 재생되고 있습니다. 당신의 귀는 시대보다 8개월 빨랐습니다.",
+            descriptionHighlights: ["5,800만명", "8개월"],
+            previousViewCountLabel: "당시 조회수",
+            previousViewCountText: "14,205회",
+            currentViewCountLabel: "현재 조회수",
+            currentViewCountText: currentViewCountText(for: item),
+            growthRate: growthRate(for: item),
+            growthLabel: "성장률",
+            trendPrefix: "당신은",
+            trendLabel: trendLabel(for: item)
+        )
+    }
+
+    private static func artistName(for item: MusicGridItem) -> String {
+        switch item.id {
+        case "music-0-plus-0": "한로로"
+        case "music-endless-season": "새소년"
+        case "music-phonecert": "10CM"
+        case "music-extinction": "쏜애플"
+        case "music-daisy": "wave to earth"
+        case "music-ride": "HYBS"
+        case "music-night": "적재"
+        default: "한로로"
+        }
+    }
+
+    private static func currentViewCountText(for item: MusicGridItem) -> String {
+        switch item.discoveryPossibility {
+        case .high: "58,000,000회"
+        case .mid: "2,840,000회"
+        case .low: "480,000회"
+        }
+    }
+
+    private static func growthRate(for item: MusicGridItem) -> String {
+        switch item.discoveryPossibility {
+        case .high: "+4.723%"
+        case .mid: "+1.827%"
+        case .low: "+338%"
+        }
+    }
+
+    private static func trendLabel(for item: MusicGridItem) -> String {
+        switch item.discoveryPossibility {
+        case .high: "Trend setter!"
+        case .mid: "Fast picker!"
+        case .low: "Early listener!"
         }
     }
 }
