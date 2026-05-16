@@ -13,6 +13,7 @@ struct ExerciseReducer: Reducer {
         var heroItems = HeroItem.mock
         var categories = CategoryItem.mock
         var stats = StatItem.mock
+        var monthlyTrendChart = CommonLineChartData.exerciseMonthlyTrendMock
         var missions = MissionItem.mock
         var routines = RoutineItem.mock
         var meals = MealItem.mock
@@ -58,6 +59,28 @@ struct ExerciseReducer: Reducer {
 
 private enum CancelID: Hashable {
     case heroCarousel
+}
+
+extension CommonLineChartData {
+    static var exerciseMonthlyTrendMock: CommonLineChartData {
+        CommonLineChartData(
+            title: "Monthly Progress",
+            subtitle: "월별 운동 추이",
+            maxValue: 150,
+            yAxisValues: [0, 50, 100, 150],
+            entries: [
+                CommonLineChartEntry(id: 0, month: "Jan", value: 18),
+                CommonLineChartEntry(id: 1, month: "Feb", value: 26),
+                CommonLineChartEntry(id: 2, month: "Mar", value: 42),
+                CommonLineChartEntry(id: 3, month: "Apr", value: 58),
+                CommonLineChartEntry(id: 4, month: "May", value: 73),
+                CommonLineChartEntry(id: 5, month: "Jun", value: 91),
+                CommonLineChartEntry(id: 6, month: "Jul", value: 108),
+                CommonLineChartEntry(id: 7, month: "Aug", value: 126),
+                CommonLineChartEntry(id: 8, month: "Sep", value: 142)
+            ]
+        )
+    }
 }
 
 struct HeroItem: Equatable, Hashable, Identifiable {

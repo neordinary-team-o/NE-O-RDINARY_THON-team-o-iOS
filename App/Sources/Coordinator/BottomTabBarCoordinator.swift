@@ -4,28 +4,22 @@ import SwiftUI
 final class BottomTabBarCoordinator: ObservableObject {
     enum Tab: String, CaseIterable, Hashable {
         case home
-        case exercise
-        case social
-        case crew
-        case shop
+        case second
+        case myPage
 
         var title: String {
             switch self {
-            case .home: return "홈"
-            case .exercise: return "운동"
-            case .social: return "소셜"
-            case .crew: return "크루"
-            case .shop: return "샵"
+            case .home: return "home"
+            case .second: return "second"
+            case .myPage: return "myPage"
             }
         }
 
         var image: String {
             switch self {
             case .home: return AppImages.bottomHomeActive
-            case .exercise: return AppImages.bottomExerciseActive
-            case .social: return AppImages.bottomSocialActive
-            case .crew: return AppImages.bottomCrewActive
-            case .shop: return AppImages.bottomShopActive
+            case .second: return AppImages.bottomExerciseActive
+            case .myPage: return AppImages.bottomShopActive
             }
         }
     }

@@ -100,21 +100,13 @@ extension BottomTabCoordinatorView {
                 .tabItem { Label(BottomTabBarCoordinator.Tab.home.title, image: BottomTabBarCoordinator.Tab.home.image) }
                 .tag(BottomTabBarCoordinator.Tab.home)
 
-            ExerciseView()
-                .tabItem { Label(BottomTabBarCoordinator.Tab.exercise.title, image: BottomTabBarCoordinator.Tab.exercise.image) }
-                .tag(BottomTabBarCoordinator.Tab.exercise)
+            SecondView()
+                .tabItem { Label(BottomTabBarCoordinator.Tab.second.title, image: BottomTabBarCoordinator.Tab.second.image) }
+                .tag(BottomTabBarCoordinator.Tab.second)
 
-            SocialView()
-                .tabItem { Label(BottomTabBarCoordinator.Tab.social.title, image: BottomTabBarCoordinator.Tab.social.image) }
-                .tag(BottomTabBarCoordinator.Tab.social)
-
-            CrewView()
-                .tabItem { Label(BottomTabBarCoordinator.Tab.crew.title, image: BottomTabBarCoordinator.Tab.crew.image) }
-                .tag(BottomTabBarCoordinator.Tab.crew)
-
-            ShopView()
-                .tabItem { Label(BottomTabBarCoordinator.Tab.shop.title, image: BottomTabBarCoordinator.Tab.shop.image) }
-                .tag(BottomTabBarCoordinator.Tab.shop)
+            MyPageView()
+                .tabItem { Label(BottomTabBarCoordinator.Tab.myPage.title, image: BottomTabBarCoordinator.Tab.myPage.image) }
+                .tag(BottomTabBarCoordinator.Tab.myPage)
         }
     }
 }

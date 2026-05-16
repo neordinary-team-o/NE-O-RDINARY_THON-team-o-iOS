@@ -10,7 +10,7 @@ let project = Project(
             destinations: [.iPhone],
             product: .app,
             bundleId: "$(APP_BASE_BUNDLE_IDENTIFIER)",
-            deploymentTargets: .iOS("16.0"),
+            deploymentTargets: .iOS("26.0"),
             infoPlist: .extendingDefault(with: [
                 "UILaunchStoryboardName": .string("LaunchScreen"),
                 "UIAppFonts": .array([

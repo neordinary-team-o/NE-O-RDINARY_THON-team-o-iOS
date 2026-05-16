@@ -13,6 +13,7 @@ struct ExerciseView: View {
         initialState: ExerciseReducer.State(),
         reducer: ExerciseReducer()
     )
+    @State private var testText = ""
     
     @Environment(\.safeAreaInsets) var safeArea
 
@@ -33,6 +34,15 @@ struct ExerciseView: View {
 
                 VStack(spacing: 16) {
                     ExerciseDailyStatsView(stats: store.state.stats)
+                    CommonTextField(
+                        text: $testText,
+                        placeHolder: "예: 온라인 교육 플랫폼 만족도 조사",
+                        isActiveMode: true,
+                        keyboardType: .default,
+                        isSecure: false,
+                        isSearch: true
+                    )
+                    CommonLineChartView(chartData: store.state.monthlyTrendChart)
                 }
                 .padding(.horizontal, 14)
                 .padding(.top, 14)
