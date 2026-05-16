@@ -31,22 +31,14 @@ struct HomeReducer: Reducer {
     struct State: Equatable {
         var userName = "홍대병동"
         var searchText = ""
-        var searchResult: HomeSearchResultItem?
         var musicGridItems = MusicGridItem.mock
         var selectedPickComplete: PickCompleteEntity?
-        var isChallengeStartPopupPresented = false
-
-        var hasSearchResult: Bool {
-            !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && searchResult != nil
-        }
     }
 
     enum Action: Hashable {
         case searchTextChanged(String)
-        case searchResultDiscoverTapped
         case musicItemTapped(MusicGridItem)
         case pickCompleteDismissed
-        case challengeStartPopupDismissed
     }
 
     var reduce: ReducerOf<Self> {
@@ -54,12 +46,6 @@ struct HomeReducer: Reducer {
             switch action {
             case let .searchTextChanged(text):
                 state.searchText = text
-                let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
-                state.searchResult = trimmedText.isEmpty ? nil : .mockGangnamStyle
-                return .none
-
-            case .searchResultDiscoverTapped:
-                state.isChallengeStartPopupPresented = true
                 return .none
 
             case let .musicItemTapped(item):
@@ -69,10 +55,6 @@ struct HomeReducer: Reducer {
 
             case .pickCompleteDismissed:
                 state.selectedPickComplete = nil
-                return .none
-
-            case .challengeStartPopupDismissed:
-                state.isChallengeStartPopupPresented = false
                 return .none
 
             }

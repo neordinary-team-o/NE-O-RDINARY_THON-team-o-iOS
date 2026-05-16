@@ -47,11 +47,7 @@ struct PickCompleteView: View {
         Image(AppImages.background)
             .resizable()
             .frame(maxHeight: .infinity)
-            .scaledToFill()
             .ignoresSafeArea()
-            .overlay {
-                AppColor.GrayScaleBlack.color.opacity(0.72)
-            }
     }
 
     private var appBar: some View {

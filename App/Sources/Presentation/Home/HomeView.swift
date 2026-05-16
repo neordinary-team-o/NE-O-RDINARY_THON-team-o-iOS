@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import PopupView
 
 struct HomeView: View {
     @Environment(\.navRouter) private var router
@@ -28,11 +27,7 @@ struct HomeView: View {
                         searchBar
                             .padding(.bottom, AppSpacing.xl)
 
-                        if store.state.hasSearchResult {
-                            searchResultContent
-                        } else {
-                            discoveredMusicContent
-                        }
+                        discoveredMusicContent
                     }
                     .padding(.horizontal, HomeLayout.horizontalPadding)
                     
@@ -49,20 +44,6 @@ struct HomeView: View {
         }
         .fullScreenCover(isPresented: pickCompletePresentedBinding) {
             pickCompleteCover
-        }
-        .popup(isPresented: challengeStartPopupPresentedBinding) {
-            challengeStartPopup
-        } customize: {
-            $0
-                .type(.floater())
-                .position(.center)
-                .appearFrom(.centerScale)
-                .dragToDismiss(true)
-                .closeOnTap(false)
-                .closeOnTapOutside(true)
-                .backgroundColor(AppColor.GrayScaleBlack.color.opacity(0.45))
-                .displayMode(.overlay)
-                .animation(.bouncy)
         }
     }
 
@@ -86,7 +67,7 @@ struct HomeView: View {
                     .scaledToFit()
                     .frame(width: HomeLayout.profileIconSize, height: HomeLayout.profileIconSize)
                     .asButton(haptic: true) {
-                        router.push(.setting(.root))
+                        router.push(.home(.search))
                     }
                     .accessibilityLabel("추가")
             }
@@ -126,19 +107,6 @@ struct HomeView: View {
         }
     }
 
-    private var searchResultContent: some View {
-        VStack(alignment: .center, spacing: 0) {
-            if let item = store.state.searchResult {
-                HomeSearchResultView(item: item) {
-                    dismissKeyboard()
-                    store.send(.searchResultDiscoverTapped)
-                }
-                .frame(maxWidth: .infinity)
-            }
-        }
-        .frame(maxWidth: .infinity)
-    }
-
     @ViewBuilder
     private var pickCompleteCover: some View {
         if let selectedPickComplete = store.state.selectedPickComplete {
@@ -160,38 +128,6 @@ struct HomeView: View {
             set: { isPresented in
                 if !isPresented {
                     store.send(.pickCompleteDismissed)
-                }
-            }
-        )
-    }
-
-    private var challengeStartPopup: some View {
-        ChallengeStartPopupView(
-            data: challengeStartPopupData,
-            onConfirmTap: {
-                store.send(.challengeStartPopupDismissed)
-            },
-            onCloseTap: {
-                store.send(.challengeStartPopupDismissed)
-            }
-        )
-        .padding(.horizontal, AppSpacing.lg)
-    }
-
-    private var challengeStartPopupData: ChallengeStartPopupData {
-        if let searchResult = store.state.searchResult {
-            ChallengeStartPopupData(searchResult: searchResult)
-        } else {
-            .mock
-        }
-    }
-
-    private var challengeStartPopupPresentedBinding: Binding<Bool> {
-        Binding(
-            get: { store.state.isChallengeStartPopupPresented },
-            set: { isPresented in
-                if !isPresented {
-                    store.send(.challengeStartPopupDismissed)
                 }
             }
         )

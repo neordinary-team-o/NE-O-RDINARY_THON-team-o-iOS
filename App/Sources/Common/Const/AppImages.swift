@@ -33,4 +33,5 @@ enum AppImages: Sendable {
     static let grid5 = "grid5"
     static let background = "background"
     static let check = "check"
+    static let arrowLeft = "arrow_left"
 }
