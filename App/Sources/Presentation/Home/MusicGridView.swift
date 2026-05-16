@@ -305,9 +305,16 @@ private struct MusicGridCardView: View {
     }
 
     private var cardContent: some View {
-        ZStack {
-            cardBackground
+        Group {
+            if let imageURL = item.imageURL {
+                NetworkImageView(url: imageURL, option: .max)
+                    .aspectRatio(1, contentMode: .fill)
+                    .clipped()
+            } else {
+                AppColor.GrayScale900.color
+            }
         }
+        .clipShape(RoundedRectangle(cornerRadius: MusicGridStyle.cardRadius))
         .overlay {
             possibilityGlow
         }
@@ -373,11 +380,7 @@ private struct MusicGridCardView: View {
     @ViewBuilder
     private var cardBackground: some View {
         if let imageURL = item.imageURL {
-            NetworkImageView(
-                url: imageURL,
-                option: .max
-            )
-            .scaledToFill()
+            NetworkImageView(url: imageURL, option: .max)
         } else {
             AppColor.GrayScale900.color
         }

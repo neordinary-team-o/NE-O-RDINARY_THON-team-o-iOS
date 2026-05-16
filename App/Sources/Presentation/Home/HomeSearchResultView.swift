@@ -19,23 +19,22 @@ struct HomeSearchResultView: View {
                 metadataSection
             }
             
+            Spacer()
+            
             discoverButton
+                .padding(.bottom, AppSpacing.md)
         }
         .accessibilityElement(children: .contain)
     }
 
     private var artwork: some View {
-        ZStack {
-            NetworkImageView(
-                url: item.artworkURL,
-                option: .custom(
-                    CGSize(width: 320, height: 320)
-                )
+        NetworkImageView(
+            url: item.artworkURL,
+            option: .custom(
+                CGSize(width: 320, height: 320)
             )
-            .scaledToFill()
-            .frame(maxWidth: .infinity)
-        }
-        .aspectRatio(1, contentMode: .fit)
+        )
+        .aspectRatio(1, contentMode: .fill)
         .background(AppColor.GrayScale800.color)
         .clipShape(
             .rect(

@@ -40,6 +40,11 @@ struct SearchView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .onChange(of: store.state.shouldNavigateBackToHome) { _, shouldNavigateBackToHome in
+            guard shouldNavigateBackToHome else { return }
+            store.send(.navigationBackToHomeHandled)
+            router.pop()
+        }
         .popup(isPresented: challengeStartPopupPresentedBinding) {
             challengeStartPopup
         } customize: {
@@ -114,26 +119,35 @@ struct SearchView: View {
             isActiveMode: true,
             keyboardType: .default,
             isSecure: false,
-            isSearch: true
+            isSearch: true,
+            onSubmit: { store.send(.searchSubmitted) }
         )
     }
 
     @ViewBuilder
     private var searchContent: some View {
-        if let result = store.state.result {
-            ScrollView(.vertical, showsIndicators: false) {
-                HomeSearchResultView(
-                    item: result,
-                    onDiscoverTap: { store.send(.discoverTapped) }
-                )
-                .padding(.top, AppSpacing.md)
-                .padding(.bottom, SearchLayout.resultBottomPadding)
-            }
-            .scrollDismissesKeyboard(.interactively)
+        if store.state.isSearching {
+            loadingState
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if let result = store.state.result {
+            HomeSearchResultView(
+                item: result,
+                onDiscoverTap: { store.send(.discoverTapped) }
+            )
+            .padding(.top, AppSpacing.md)
+            .padding(.bottom, SearchLayout.resultBottomPadding)
         } else {
             emptyState
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+    }
+
+    private var loadingState: some View {
+        ProgressView()
+            .progressViewStyle(.circular)
+            .tint(AppColor.GreenNormal.color)
+            .scaleEffect(1.2)
+            .accessibilityLabel("검색 중")
     }
 
     private var emptyState: some View {
@@ -148,7 +162,7 @@ struct SearchView: View {
         ChallengeStartPopupView(
             data: challengeStartPopupData,
             onConfirmTap: {
-                store.send(.challengeStartPopupDismissed)
+                store.send(.createDigSubmitted)
             },
             onCloseTap: {
                 store.send(.challengeStartPopupDismissed)

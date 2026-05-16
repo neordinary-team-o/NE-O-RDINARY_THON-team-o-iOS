@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "GBAppIcon.png",
+      "filename" : "AppLogo.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "GBAppIconDark.png",
+      "filename" : "AppLogo 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"

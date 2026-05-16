@@ -30,12 +30,11 @@ public protocol Router {
 
 extension Router {
     
-    // TODO: Change Need This
     public var baseURL: String {
         #if Dev
-        return ""
+        return "https://api.neordinary-o.r-e.kr"
         #else
-        return ""
+        return "https://api.neordinary-o.r-e.kr"
         #endif
     }
     

@@ -52,7 +52,7 @@ struct PickCompleteView: View {
 
     private var appBar: some View {
         ZStack(alignment: .center) {
-            Image(AppImages.topLogo)
+            Image(AppImages.success)
                 .resizable()
                 .frame(width: 91.43, height: 21.84)
 

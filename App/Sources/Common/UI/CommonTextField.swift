@@ -15,6 +15,7 @@ public struct CommonTextField: View {
     private let keyboardType: UIKeyboardType
     private let isSecure: Bool
     private let isSearch: Bool
+    private let onSubmit: (() -> Void)?
 
     @FocusState private var isFocused: Bool
 
@@ -24,7 +25,8 @@ public struct CommonTextField: View {
         isActiveMode: Bool = true,
         keyboardType: UIKeyboardType = .default,
         isSecure: Bool = false,
-        isSearch: Bool = false
+        isSearch: Bool = false,
+        onSubmit: (() -> Void)? = nil
     ) {
         self._text = text
         self.placeHolder = placeHolder
@@ -32,6 +34,7 @@ public struct CommonTextField: View {
         self.keyboardType = keyboardType
         self.isSecure = isSecure
         self.isSearch = isSearch
+        self.onSubmit = onSubmit
     }
 
     public var body: some View {
@@ -45,6 +48,7 @@ public struct CommonTextField: View {
             inputView
                 .focused($isFocused)
                 .keyboardType(keyboardType)
+                .submitLabel(isSearch ? .search : .done)
                 .font(AppFont.bodyNormal.font())
                 .foregroundStyle(AppColor.GrayScaleWhite.color)
                 .tint(AppColor.GreenNormal.color)
@@ -58,6 +62,9 @@ public struct CommonTextField: View {
                     isFocused && isActiveMode ? AppColor.GreenNormal.color : .clear,
                     lineWidth: 1
                 )
+        }
+        .onSubmit {
+            onSubmit?()
         }
     }
 

@@ -20,19 +20,13 @@ struct HomeView: View {
             topAppBar
                 .padding(.bottom, 8)
             
+            searchBar
+                .padding(.bottom, AppSpacing.xl)
+                .padding(.horizontal, HomeLayout.horizontalPadding)
+            
             ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 0) {
-                    
-                    VStack(alignment: .leading, spacing: 0) {
-                        searchBar
-                            .padding(.bottom, AppSpacing.xl)
-
-                        discoveredMusicContent
-                    }
+                discoveredMusicContent
                     .padding(.horizontal, HomeLayout.horizontalPadding)
-                    
-                }
-                .padding(.top, AppSpacing.sm)
                 .padding(.bottom, HomeLayout.bottomPadding)
             }
             .scrollDismissesKeyboard(.interactively)
@@ -44,6 +38,9 @@ struct HomeView: View {
         }
         .fullScreenCover(isPresented: pickCompletePresentedBinding) {
             pickCompleteCover
+        }
+        .onAppear {
+            store.send(.onAppear)
         }
     }
 
@@ -86,7 +83,8 @@ struct HomeView: View {
             isActiveMode: true,
             keyboardType: .default,
             isSecure: false,
-            isSearch: true
+            isSearch: true,
+            onSubmit: { store.send(.searchSubmitted) }
         )
     }
 

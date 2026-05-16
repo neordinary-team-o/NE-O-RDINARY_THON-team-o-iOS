@@ -7,7 +7,7 @@ final class AppCoordinator: ObservableObject, NavRouter {
         case home
     }
 
-    @Published var root: Root = .login
+    @Published var root: Root = .home
     @Published var path: [AppRoute] = []
     @Published var tabCoordinator = BottomTabBarCoordinator()
 
