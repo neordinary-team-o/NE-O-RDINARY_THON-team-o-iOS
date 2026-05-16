@@ -3,13 +3,11 @@ import SwiftUI
 @MainActor
 final class AppCoordinator: ObservableObject, NavRouter {
     enum Root {
-        case login
         case home
     }
 
     @Published var root: Root = .home
     @Published var path: [AppRoute] = []
-    @Published var tabCoordinator = BottomTabBarCoordinator()
 
     var router: AppRouter {
         AppRouter(
@@ -24,11 +22,6 @@ final class AppCoordinator: ObservableObject, NavRouter {
 
     func push(_ route: AppRoute) {
         path.append(route)
-    }
-
-    func loginSucceeded() {
-        path.removeAll()
-        root = .home
     }
 
     func pop() {

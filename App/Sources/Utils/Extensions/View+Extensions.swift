@@ -178,24 +178,6 @@ public extension View {
 }
 
 public extension View {
-    func customBottomSheet<SheetContent: View>(
-        isPresented: Binding<Bool>,
-        height: CGFloat? = nil,
-        dismissOnTap: Bool = true,
-        @ViewBuilder content: @escaping () -> SheetContent
-    ) -> some View {
-        modifier(
-            CustomBottomSheetModifier(
-                isPresented: isPresented,
-                height: height,
-                dismissOnTap: dismissOnTap,
-                sheetContent: content
-            )
-        )
-    }
-}
-
-public extension View {
     @ViewBuilder
     func shimmering(
         active: Bool = true,

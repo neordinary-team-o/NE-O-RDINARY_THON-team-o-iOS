@@ -8,10 +8,6 @@ struct AppCoordinatorRootView: View {
         NavigationStack(path: $coordinator.path) {
             Group {
                 switch coordinator.root {
-                case .login:
-                    LoginView {
-                        coordinator.loginSucceeded()
-                    }
                 case .home:
                     homeEntryView
                 }
