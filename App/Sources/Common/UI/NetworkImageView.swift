@@ -89,7 +89,7 @@ public struct NetworkImageView: View {
     
     private var imageView: KFImage {
         KFImage(url)
-            .scaleFactor(UIScreen.main.scale)
+//            .scaleFactor(UIScreen.main.scale)
             .setProcessor(
                 DownsamplingImageProcessor(
                     size: option.size

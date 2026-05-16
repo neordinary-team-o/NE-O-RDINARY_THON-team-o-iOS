@@ -28,22 +28,12 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         searchBar
                             .padding(.bottom, AppSpacing.xl)
-                        sectionTitle
-                            .padding(.bottom, AppSpacing.md)
-                            .contentShape(Rectangle())
-                            .onTapGesture(perform: dismissKeyboard)
-                        
-                        MusicGridView(
-                            items: store.state.musicGridItems,
-                            onAddTap: {
-                                dismissKeyboard()
-                                store.send(.addMusicTapped)
-                            },
-                            onTap: { item in
-                                dismissKeyboard()
-                                store.send(.musicItemTapped(item))
-                            }
-                        )
+
+                        if store.state.hasSearchResult {
+                            searchResultContent
+                        } else {
+                            discoveredMusicContent
+                        }
                     }
                     .padding(.horizontal, HomeLayout.horizontalPadding)
                     
@@ -60,6 +50,20 @@ struct HomeView: View {
         }
         .popup(isPresented: musicCardPresentedBinding) {
             musicCardPopup
+        } customize: {
+            $0
+                .type(.floater())
+                .position(.bottom)
+                .appearFrom(.bottomSlide)
+                .dragToDismiss(true)
+                .closeOnTap(false)
+                .closeOnTapOutside(true)
+                .backgroundColor(AppColor.GrayScaleBlack.color.opacity(0.45))
+                .displayMode(.overlay)
+                .animation(.bouncy)
+        }
+        .popup(isPresented: musicCardSharePopupPresentedBinding) {
+            musicCardSharePopup
         } customize: {
             $0
                 .type(.floater())
@@ -117,6 +121,40 @@ struct HomeView: View {
         )
     }
 
+    private var discoveredMusicContent: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            sectionTitle
+                .padding(.bottom, AppSpacing.md)
+                .contentShape(Rectangle())
+                .onTapGesture(perform: dismissKeyboard)
+
+            MusicGridView(
+                items: store.state.musicGridItems,
+                onAddTap: {
+                    dismissKeyboard()
+                    store.send(.addMusicTapped)
+                },
+                onTap: { item in
+                    dismissKeyboard()
+                    store.send(.musicItemTapped(item))
+                }
+            )
+        }
+    }
+
+    private var searchResultContent: some View {
+        VStack(alignment: .center, spacing: 0) {
+            if let item = store.state.searchResult {
+                HomeSearchResultView(item: item) {
+                    dismissKeyboard()
+                    store.send(.searchResultDiscoverTapped)
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
 
     @ViewBuilder
     private var musicCardPopup: some View {
@@ -132,6 +170,7 @@ struct HomeView: View {
                     store.send(.musicCardReviewEditTapped)
                 },
                 onShareTap: {
+                    dismissKeyboard()
                     store.send(.musicCardShareTapped)
                 },
                 onCloseTap: {
@@ -157,6 +196,29 @@ struct HomeView: View {
             set: { isCompleted in
                 if !isCompleted {
                     store.send(.musicCardReviewEditTapped)
+                }
+            }
+        )
+    }
+
+    private var musicCardSharePopup: some View {
+        HomePopupView(
+            data: .mock,
+            onShareTap: {},
+            onCloseTap: {
+                store.send(.musicCardSharePopupDismissed)
+            }
+        )
+        .padding(.horizontal, AppSpacing.lg)
+        .padding(.bottom, safeArea.bottom)
+    }
+
+    private var musicCardSharePopupPresentedBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.isMusicCardSharePopupPresented },
+            set: { isPresented in
+                if !isPresented {
+                    store.send(.musicCardSharePopupDismissed)
                 }
             }
         )
