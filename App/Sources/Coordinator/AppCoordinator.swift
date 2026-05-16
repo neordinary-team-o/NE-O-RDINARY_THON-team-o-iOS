@@ -4,7 +4,7 @@ import SwiftUI
 final class AppCoordinator: ObservableObject, NavRouter {
     enum Root {
         case login
-        case tabs
+        case home
     }
 
     @Published var root: Root = .login
@@ -28,7 +28,7 @@ final class AppCoordinator: ObservableObject, NavRouter {
 
     func loginSucceeded() {
         path.removeAll()
-        root = .tabs
+        root = .home
     }
 
     func pop() {

@@ -15,4 +15,7 @@ enum AppImages: Sendable {
     static let bottomShopActive = "bottom_shop_active"
     static let arrowRight = "arrow_right"
     static let searchIcon = "search"
+    static let topLogo = "topLogo"
+    static let myPage = "myPage"
+    static let plus = "plus"
 }

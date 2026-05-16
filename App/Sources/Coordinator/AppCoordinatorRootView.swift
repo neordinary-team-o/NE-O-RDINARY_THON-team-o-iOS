@@ -11,8 +11,8 @@ struct AppCoordinatorRootView: View {
                     LoginView {
                         coordinator.loginSucceeded()
                     }
-                case .tabs:
-                    BottomTabCoordinatorView(coordinator: coordinator.tabCoordinator)
+                case .home:
+                    HomeView()
                 }
             }
             .navigationDestination(for: AppRoute.self) { route in
