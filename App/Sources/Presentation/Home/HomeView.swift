@@ -76,6 +76,20 @@ struct HomeView: View {
                 .displayMode(.overlay)
                 .animation(.bouncy)
         }
+        .popup(isPresented: challengeStartPopupPresentedBinding) {
+            challengeStartPopup
+        } customize: {
+            $0
+                .type(.floater())
+                .position(.center)
+                .appearFrom(.centerScale)
+                .dragToDismiss(true)
+                .closeOnTap(false)
+                .closeOnTapOutside(true)
+                .backgroundColor(AppColor.GrayScaleBlack.color.opacity(0.45))
+                .displayMode(.overlay)
+                .animation(.bouncy)
+        }
     }
 
     private func dismissKeyboard() {
@@ -219,6 +233,38 @@ struct HomeView: View {
             set: { isPresented in
                 if !isPresented {
                     store.send(.musicCardSharePopupDismissed)
+                }
+            }
+        )
+    }
+
+    private var challengeStartPopup: some View {
+        ChallengeStartPopupView(
+            data: challengeStartPopupData,
+            onConfirmTap: {
+                store.send(.challengeStartPopupDismissed)
+            },
+            onCloseTap: {
+                store.send(.challengeStartPopupDismissed)
+            }
+        )
+        .padding(.horizontal, AppSpacing.lg)
+    }
+
+    private var challengeStartPopupData: ChallengeStartPopupData {
+        if let searchResult = store.state.searchResult {
+            ChallengeStartPopupData(searchResult: searchResult)
+        } else {
+            .mock
+        }
+    }
+
+    private var challengeStartPopupPresentedBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.isChallengeStartPopupPresented },
+            set: { isPresented in
+                if !isPresented {
+                    store.send(.challengeStartPopupDismissed)
                 }
             }
         )

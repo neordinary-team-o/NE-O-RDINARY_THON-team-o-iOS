@@ -37,6 +37,7 @@ struct HomeReducer: Reducer {
         var musicCardReviewText = ""
         var isMusicCardReviewCompleted = false
         var isMusicCardSharePopupPresented = false
+        var isChallengeStartPopupPresented = false
 
         var hasSearchResult: Bool {
             !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && searchResult != nil
@@ -53,6 +54,7 @@ struct HomeReducer: Reducer {
         case musicCardReviewEditTapped
         case musicCardShareTapped
         case musicCardSharePopupDismissed
+        case challengeStartPopupDismissed
         case addMusicTapped
     }
 
@@ -66,6 +68,7 @@ struct HomeReducer: Reducer {
                 return .none
 
             case .searchResultDiscoverTapped:
+                state.isChallengeStartPopupPresented = true
                 return .none
 
             case .musicItemTapped:
@@ -97,6 +100,10 @@ struct HomeReducer: Reducer {
 
             case .musicCardSharePopupDismissed:
                 state.isMusicCardSharePopupPresented = false
+                return .none
+
+            case .challengeStartPopupDismissed:
+                state.isChallengeStartPopupPresented = false
                 return .none
 
             case .addMusicTapped:
