@@ -305,16 +305,15 @@ private struct MusicGridCardView: View {
     }
 
     private var cardContent: some View {
-        Group {
-            if let imageURL = item.imageURL {
-                NetworkImageView(url: imageURL, option: .max)
-                    .aspectRatio(1, contentMode: .fill)
-                    .clipped()
-            } else {
-                AppColor.GrayScale900.color
+        AppColor.GrayScale900.color
+            .overlay {
+                if let imageURL = item.imageURL {
+                    NetworkImageView(url: imageURL, option: .max)
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipped()
+                }
             }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: MusicGridStyle.cardRadius))
         .overlay {
             possibilityGlow
         }
@@ -336,7 +335,10 @@ private struct MusicGridCardView: View {
         .overlay(alignment: .bottomLeading) {
             titleText
         }
-        .clipShape(.rect(cornerRadius: MusicGridStyle.cardRadius, style: .continuous))
+        .compositingGroup()
+        .mask {
+            RoundedRectangle(cornerRadius: MusicGridStyle.cardRadius, style: .continuous)
+        }
     }
 
     private var effectiveDisplayState: MusicGridCardDisplayState {

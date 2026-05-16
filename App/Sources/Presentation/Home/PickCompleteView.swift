@@ -129,6 +129,7 @@ struct PickCompleteView: View {
                 startPoint: .top,
                 endPoint: .bottom
             )
+            .clipShape(.rect(cornerRadius: PickCompleteLayout.imageRadius, style: .continuous))
         }
         .overlay {
             RadialGradient(
@@ -141,6 +142,7 @@ struct PickCompleteView: View {
                 endRadius: PickCompleteLayout.imageGlowRadius
             )
             .blendMode(.screen)
+            .clipShape(.rect(cornerRadius: PickCompleteLayout.imageRadius, style: .continuous))
         }
         .clipped()
     }
