@@ -86,3 +86,8 @@ Tuist/Dependencies/
 .agent
 .sisyphus/
 .claude/settings.local.json
+
+### App setting local secrets ###
+AppSettingFiles/XCConfigs/
+AppSettingFiles/SecretFiles/
+AppSettingFiles/InfoPlist/
