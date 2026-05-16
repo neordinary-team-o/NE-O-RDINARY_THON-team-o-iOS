@@ -89,21 +89,134 @@ extension MusicGridItem {
 }
 
 struct MusicGridView: View {
+    @State private var currentPage = 0
+
     let items: [MusicGridItem]
-    let selectedItemID: MusicGridItem.ID?
     let onTap: (MusicGridItem) -> Void
-    let onAddTap: () -> Void
 
     init(
         items: [MusicGridItem] = MusicGridItem.mock,
-        selectedItemID: MusicGridItem.ID? = nil,
-        onAddTap: @escaping () -> Void = {},
         onTap: @escaping (MusicGridItem) -> Void
     ) {
         self.items = items
-        self.selectedItemID = selectedItemID
-        self.onAddTap = onAddTap
         self.onTap = onTap
+    }
+
+    var body: some View {
+        VStack(spacing: AppSpacing.xxs) {
+            TabView(selection: pageSelection) {
+                ForEach(Array(pagedSlots.enumerated()), id: \.offset) { index, slots in
+                    MusicGridPageView(
+                        slots: slots,
+                        onTap: onTap
+                    )
+                    .tag(index)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .aspectRatio(1, contentMode: .fit)
+
+            pageIndicator
+        }
+        .frame(maxWidth: .infinity)
+        .onChange(of: totalPages) { _, newTotalPages in
+            clampCurrentPage(to: newTotalPages)
+        }
+    }
+
+    private var pageSelection: Binding<Int> {
+        Binding(
+            get: { activePageIndex },
+            set: { currentPage = $0 }
+        )
+    }
+
+    private var activePageIndex: Int {
+        min(currentPage, max(totalPages - 1, 0))
+    }
+
+    private var totalPages: Int {
+        pagedSlots.count
+    }
+
+    private var pagedSlots: [[MusicGridSlot]] {
+        var slots = items.map(MusicGridSlot.item)
+
+        if slots.isEmpty {
+            slots = emptySlots(startingAt: 0, count: MusicGridStyle.itemsPerPage)
+        }
+
+        while slots.count % MusicGridStyle.itemsPerPage != 0 {
+            slots.append(.empty(id: "music-grid-empty-\(slots.count)"))
+        }
+
+        return stride(from: 0, to: slots.count, by: MusicGridStyle.itemsPerPage).map { startIndex in
+            let endIndex = min(startIndex + MusicGridStyle.itemsPerPage, slots.count)
+            return Array(slots[startIndex..<endIndex])
+        }
+    }
+
+    private func emptySlots(startingAt startIndex: Int, count: Int) -> [MusicGridSlot] {
+        (startIndex..<(startIndex + count)).map { index in
+            .empty(id: "music-grid-empty-\(index)")
+        }
+    }
+
+    @ViewBuilder
+    private var pageIndicator: some View {
+        if totalPages > 1 {
+            HStack(spacing: AppSpacing.xxs) {
+                ForEach(Array(visibleIndicatorRange), id: \.self) { index in
+                    Circle()
+                        .fill(index == activePageIndex ? AppColor.GreenNormal.color : AppColor.GrayScale600.color)
+                        .opacity(index == activePageIndex ? 1 : MusicGridStyle.indicatorInactiveOpacity)
+                        .frame(
+                            width: MusicGridStyle.indicatorDotSize,
+                            height: MusicGridStyle.indicatorDotSize
+                        )
+                }
+            }
+            .accessibilityLabel("\(activePageIndex + 1) / \(totalPages)")
+        }
+    }
+
+    private var visibleIndicatorRange: Range<Int> {
+        let visibleCount = min(totalPages, MusicGridStyle.maxVisibleIndicatorDots)
+        let centeredStart = activePageIndex - visibleCount / 2
+        let maxStart = max(totalPages - visibleCount, 0)
+        let start = min(max(centeredStart, 0), maxStart)
+        return start..<(start + visibleCount)
+    }
+
+    private func clampCurrentPage(to totalPages: Int) {
+        let lastPage = max(totalPages - 1, 0)
+
+        if currentPage > lastPage {
+            currentPage = lastPage
+        }
+    }
+}
+
+private struct MusicGridPageView: View {
+    let slots: [MusicGridSlot]
+    let onTap: (MusicGridItem) -> Void
+
+    @ViewBuilder
+    private var featuredSection: some View {
+        MusicGridFeaturedLayout(spacing: AppSpacing.xxs) {
+            ForEach(Array(slots.prefix(3).enumerated()), id: \.offset) { index, slot in
+                slotView(slot, at: index)
+            }
+        }
+    }
+
+    private var repeatedGrid: some View {
+        LazyVGrid(columns: gridColumns, spacing: AppSpacing.xxs) {
+            ForEach(Array(slots.dropFirst(3).enumerated()), id: \.offset) { offset, slot in
+                slotView(slot, at: offset + 3)
+                    .aspectRatio(1, contentMode: .fit)
+            }
+        }
     }
 
     var body: some View {
@@ -115,42 +228,28 @@ struct MusicGridView: View {
     }
 
     @ViewBuilder
-    private var featuredSection: some View {
-        if !featuredItems.isEmpty {
-            MusicGridFeaturedLayout(spacing: AppSpacing.xxs) {
-                ForEach(featuredItems) { item in
-                    MusicGridCardView(
-                        item: item,
-                        displayState: displayState(for: item),
-                        onTap: onTap
-                    )
-                }
-            }
+    private func slotView(_ slot: MusicGridSlot, at index: Int) -> some View {
+        switch slot {
+        case let .item(item):
+            let displayItem = item.kind == .empty ? item : item.displaying(kind: itemKind(for: index))
+
+            MusicGridCardView(
+                item: displayItem,
+                tapItem: item,
+                displayState: displayState(for: displayItem),
+                onTap: onTap
+            )
+        case let .empty(id):
+            MusicGridCardView(
+                item: .emptyPlaceholder(id: id),
+                displayState: .default,
+                onTap: onTap
+            )
         }
     }
 
-    private var repeatedGrid: some View {
-        LazyVGrid(columns: gridColumns, spacing: AppSpacing.xxs) {
-            ForEach(repeatedItems) { item in
-                MusicGridCardView(
-                    item: item,
-                    displayState: displayState(for: item),
-                    onTap: onTap
-                )
-                    .aspectRatio(1, contentMode: .fit)
-            }
-
-            MusicGridAddCardView(onTap: onAddTap)
-                .aspectRatio(1, contentMode: .fit)
-        }
-    }
-
-    private var featuredItems: ArraySlice<MusicGridItem> {
-        items.prefix(3)
-    }
-
-    private var repeatedItems: ArraySlice<MusicGridItem> {
-        items.dropFirst(3)
+    private func itemKind(for index: Int) -> MusicGridItem.Kind {
+        index == 0 ? .large : .small
     }
 
     private var gridColumns: [GridItem] {
@@ -162,41 +261,47 @@ struct MusicGridView: View {
 
     private func displayState(for item: MusicGridItem) -> MusicGridCardDisplayState {
         guard item.kind != .empty else { return .default }
-        guard let selectedItemID else { return .default }
-        return selectedItemID == item.id ? .selected : .unselected
+        return .default
     }
 }
 
-private struct MusicGridAddCardView: View {
-    let onTap: () -> Void
-
-    var body: some View {
-        ZStack {
-            AppColor.GrayScale900.color
-
-            Image(AppImages.plus)
-                .font(.system(size: MusicGridStyle.plusIconSize, weight: .semibold))
-                .foregroundStyle(AppColor.GrayScaleWhite.color)
-        }
-        .clipShape(.rect(cornerRadius: MusicGridStyle.cardRadius, style: .continuous))
-        .asButton(haptic: true, action: onTap)
-        .accessibilityLabel("음악 추가")
-    }
+private enum MusicGridSlot: Equatable {
+    case item(MusicGridItem)
+    case empty(id: String)
 }
 
 private struct MusicGridCardView: View {
     @Environment(\.isMusicGridCardPressed) private var isPressed
 
     let item: MusicGridItem
+    let tapItem: MusicGridItem
     let displayState: MusicGridCardDisplayState
     let onTap: (MusicGridItem) -> Void
 
+    init(
+        item: MusicGridItem,
+        tapItem: MusicGridItem? = nil,
+        displayState: MusicGridCardDisplayState,
+        onTap: @escaping (MusicGridItem) -> Void
+    ) {
+        self.item = item
+        self.tapItem = tapItem ?? item
+        self.displayState = displayState
+        self.onTap = onTap
+    }
+
+    @ViewBuilder
     var body: some View {
-        cardContent
-            .asButton(haptic: true, style: MusicGridCardButtonStyle()) {
-                onTap(item)
-            }
-            .accessibilityLabel(item.accessibilityLabel)
+        if item.kind == .empty {
+            cardContent
+                .accessibilityLabel(item.accessibilityLabel)
+        } else {
+            cardContent
+                .asButton(haptic: true, style: MusicGridCardButtonStyle()) {
+                    onTap(tapItem)
+                }
+                .accessibilityLabel(item.accessibilityLabel)
+        }
     }
 
     private var cardContent: some View {
@@ -255,19 +360,6 @@ private struct MusicGridCardView: View {
             ZStack {
                 AppColor.GrayScaleBlack.color
                     .opacity(effectiveDisplayState.imageDimOpacity)
-
-                if effectiveDisplayState.selectedHighlightOpacity > 0 {
-                    RadialGradient(
-                        colors: [
-                            AppColor.GreenLight.color.opacity(effectiveDisplayState.selectedHighlightOpacity),
-                            AppColor.GreenLight.color.opacity(0)
-                        ],
-                        center: .center,
-                        startRadius: MusicGridStyle.glowStartRadius,
-                        endRadius: item.kind == .large ? MusicGridStyle.largeGlowEndRadius : MusicGridStyle.smallGlowEndRadius
-                    )
-                    .blendMode(.screen)
-                }
 
                 if effectiveDisplayState.greenTintOpacity > 0 {
                     AppColor.GreenNormal.color
@@ -384,41 +476,29 @@ private struct MusicGridFeaturedLayout: Layout {
 
 private enum MusicGridCardDisplayState: Equatable {
     case `default`
-    case selected
     case pressed
-    case unselected
 
     var imageDimOpacity: Double {
         switch self {
-        case .default, .selected, .pressed:
+        case .default, .pressed:
             MusicGridStyle.imageDimOpacity
-        case .unselected:
-            MusicGridStyle.unselectedDimOpacity
         }
     }
 
     var greenTintOpacity: Double {
         switch self {
-        case .selected:
-            MusicGridStyle.selectedTintOpacity
         case .pressed:
             MusicGridStyle.pressedTintOpacity
-        case .default, .unselected:
+        case .default:
             0
         }
-    }
-
-    var selectedHighlightOpacity: Double {
-        self == .selected ? MusicGridStyle.selectedHighlightOpacity : 0
     }
 
     func glowOpacity(for possibility: MusicGridItem.DiscoveryPossibility) -> Double {
         switch self {
         case .pressed:
             MusicGridStyle.midGlowOpacity
-        case .selected:
-            MusicGridStyle.selectedGlowOpacity
-        case .default, .unselected:
+        case .default:
             possibility.glowOpacity
         }
     }
@@ -465,6 +545,26 @@ private extension EnvironmentValues {
 }
 
 private extension MusicGridItem {
+    static func emptyPlaceholder(id: String) -> MusicGridItem {
+        MusicGridItem(
+            id: id,
+            title: "",
+            imageURL: nil,
+            discoveryPossibility: .low,
+            kind: .empty
+        )
+    }
+
+    func displaying(kind: Kind) -> MusicGridItem {
+        MusicGridItem(
+            id: id,
+            title: title,
+            imageURL: imageURL,
+            discoveryPossibility: discoveryPossibility,
+            kind: kind
+        )
+    }
+
     var titleStyle: AppFontStyle {
         kind == .large ? AppFont.title : AppFont.headline
     }
@@ -484,18 +584,17 @@ private extension MusicGridItem {
 }
 
 private enum MusicGridStyle {
+    static let itemsPerPage = 6
     static let gridColumnCount = 3
+    static let maxVisibleIndicatorDots = 4
     static let cardRadius: CGFloat = 20
-    static let plusIconSize: CGFloat = 28
+    static let indicatorDotSize = AppSpacing.xs
+    static let indicatorInactiveOpacity = 0.36
     static let imageDimOpacity = 0.12
-    static let unselectedDimOpacity = 0.66
     static let pressedTintOpacity = 0.1
-    static let selectedTintOpacity = 0.18
-    static let selectedHighlightOpacity = 0.38
     static let highGlowOpacity = 0.38
     static let midGlowOpacity = 0.18
     static let lowGlowOpacity = 0.04
-    static let selectedGlowOpacity = 0.3
     static let glowStartRadius: CGFloat = 0
     static let smallGlowEndRadius: CGFloat = 150
     static let largeGlowEndRadius: CGFloat = 280
