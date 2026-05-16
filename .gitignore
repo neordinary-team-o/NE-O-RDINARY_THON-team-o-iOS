@@ -81,3 +81,8 @@ Derived/
 ### Tuist managed dependencies ###
 Tuist/.build
 Tuist/Dependencies/
+
+### Agent local state ###
+.agent
+.sisyphus/
+.claude/settings.local.json
