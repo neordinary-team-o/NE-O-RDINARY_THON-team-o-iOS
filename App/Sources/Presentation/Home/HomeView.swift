@@ -144,6 +144,7 @@ struct HomeView: View {
 
             MusicGridView(
                 items: store.state.musicGridItems,
+                selectedItemID: store.state.selectedMusicGridItemID,
                 onAddTap: {
                     dismissKeyboard()
                     store.send(.addMusicTapped)

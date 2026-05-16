@@ -39,8 +39,9 @@ struct LoginView: View {
 
             RadialGradient(
                 colors: [
-                    AppColor.GreenNormal.color.opacity(0.72),
+                    AppColor.GreenNormal.color.opacity(0.42),
                     AppColor.GreenNormalActive.color.opacity(0.26),
+                    AppColor.GreenNormalActive.color.opacity(0.10),
                     AppColor.GreenNormal.color.opacity(0)
                 ],
                 center: .top,

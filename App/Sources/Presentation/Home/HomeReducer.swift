@@ -33,6 +33,7 @@ struct HomeReducer: Reducer {
         var searchText = ""
         var searchResult: HomeSearchResultItem?
         var musicGridItems = MusicGridItem.mock
+        var selectedMusicGridItemID: MusicGridItem.ID?
         var selectedMusicCard: MusicCardEntity?
         var musicCardReviewText = ""
         var isMusicCardReviewCompleted = false
@@ -71,11 +72,13 @@ struct HomeReducer: Reducer {
                 state.isChallengeStartPopupPresented = true
                 return .none
 
-            case .musicItemTapped:
+            case let .musicItemTapped(item):
+                state.selectedMusicGridItemID = item.kind == .empty ? nil : item.id
                 state.selectedMusicCard = .mock
                 return .none
 
             case .musicCardDismissed:
+                state.selectedMusicGridItemID = nil
                 state.selectedMusicCard = nil
                 state.isMusicCardSharePopupPresented = false
                 return .none

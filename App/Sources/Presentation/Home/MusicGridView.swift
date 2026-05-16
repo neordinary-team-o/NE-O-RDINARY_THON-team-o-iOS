@@ -11,7 +11,14 @@ struct MusicGridItem: Identifiable, Equatable, Hashable {
     let id: String
     let title: String
     let imageURL: URL?
+    let discoveryPossibility: DiscoveryPossibility
     let kind: Kind
+
+    enum DiscoveryPossibility: Equatable, Hashable {
+        case high
+        case mid
+        case low
+    }
 
     enum Kind: Equatable, Hashable {
         case large
@@ -26,48 +33,56 @@ extension MusicGridItem {
             id: "music-0-plus-0",
             title: "0+0",
             imageURL: URL(string: "https://picsum.photos/seed/cmc-music-0-plus-0/424/424"),
+            discoveryPossibility: .high,
             kind: .large
         ),
         MusicGridItem(
             id: "music-endless-season",
             title: "끝나지 않는 계절 이에요",
             imageURL: URL(string: "https://picsum.photos/seed/cmc-music-endless-season/208/208"),
+            discoveryPossibility: .mid,
             kind: .small
         ),
         MusicGridItem(
             id: "music-phonecert",
             title: "폰서트",
             imageURL: URL(string: "https://picsum.photos/seed/cmc-music-phonecert/208/208"),
+            discoveryPossibility: .low,
             kind: .small
         ),
         MusicGridItem(
             id: "music-extinction",
             title: "멸종",
             imageURL: URL(string: "https://picsum.photos/seed/cmc-music-extinction/208/208"),
+            discoveryPossibility: .high,
             kind: .small
         ),
         MusicGridItem(
             id: "music-daisy",
             title: "daisy.",
             imageURL: URL(string: "https://picsum.photos/seed/cmc-music-daisy/208/208"),
+            discoveryPossibility: .mid,
             kind: .small
         ),
         MusicGridItem(
             id: "music-ride",
             title: "Ride",
             imageURL: URL(string: "https://picsum.photos/seed/cmc-music-ride/208/208"),
+            discoveryPossibility: .low,
             kind: .small
         ),
         MusicGridItem(
             id: "music-night",
             title: "Night Walk",
             imageURL: URL(string: "https://picsum.photos/seed/cmc-music-night-walk/208/208"),
+            discoveryPossibility: .mid,
             kind: .small
         ),
         MusicGridItem(
             id: "music-empty",
             title: "",
             imageURL: nil,
+            discoveryPossibility: .low,
             kind: .empty
         )
     ]
@@ -75,15 +90,18 @@ extension MusicGridItem {
 
 struct MusicGridView: View {
     let items: [MusicGridItem]
+    let selectedItemID: MusicGridItem.ID?
     let onTap: (MusicGridItem) -> Void
     let onAddTap: () -> Void
 
     init(
         items: [MusicGridItem] = MusicGridItem.mock,
+        selectedItemID: MusicGridItem.ID? = nil,
         onAddTap: @escaping () -> Void = {},
         onTap: @escaping (MusicGridItem) -> Void
     ) {
         self.items = items
+        self.selectedItemID = selectedItemID
         self.onAddTap = onAddTap
         self.onTap = onTap
     }
@@ -101,7 +119,11 @@ struct MusicGridView: View {
         if !featuredItems.isEmpty {
             MusicGridFeaturedLayout(spacing: AppSpacing.xxs) {
                 ForEach(featuredItems) { item in
-                    MusicGridCardView(item: item, onTap: onTap)
+                    MusicGridCardView(
+                        item: item,
+                        displayState: displayState(for: item),
+                        onTap: onTap
+                    )
                 }
             }
         }
@@ -110,7 +132,11 @@ struct MusicGridView: View {
     private var repeatedGrid: some View {
         LazyVGrid(columns: gridColumns, spacing: AppSpacing.xxs) {
             ForEach(repeatedItems) { item in
-                MusicGridCardView(item: item, onTap: onTap)
+                MusicGridCardView(
+                    item: item,
+                    displayState: displayState(for: item),
+                    onTap: onTap
+                )
                     .aspectRatio(1, contentMode: .fit)
             }
 
@@ -133,6 +159,12 @@ struct MusicGridView: View {
             count: MusicGridStyle.gridColumnCount
         )
     }
+
+    private func displayState(for item: MusicGridItem) -> MusicGridCardDisplayState {
+        guard item.kind != .empty else { return .default }
+        guard let selectedItemID else { return .default }
+        return selectedItemID == item.id ? .selected : .unselected
+    }
 }
 
 private struct MusicGridAddCardView: View {
@@ -153,12 +185,15 @@ private struct MusicGridAddCardView: View {
 }
 
 private struct MusicGridCardView: View {
+    @Environment(\.isMusicGridCardPressed) private var isPressed
+
     let item: MusicGridItem
+    let displayState: MusicGridCardDisplayState
     let onTap: (MusicGridItem) -> Void
 
     var body: some View {
         cardContent
-            .asButton(haptic: true) {
+            .asButton(haptic: true, style: MusicGridCardButtonStyle()) {
                 onTap(item)
             }
             .accessibilityLabel(item.accessibilityLabel)
@@ -169,10 +204,10 @@ private struct MusicGridCardView: View {
             cardBackground
         }
         .overlay {
-            if item.imageURL != nil {
-                AppColor.GrayScaleBlack.color
-                    .opacity(MusicGridStyle.imageDimOpacity)
-            }
+            possibilityGlow
+        }
+        .overlay {
+            stateOverlay
         }
         .overlay(alignment: .bottom) {
             if item.imageURL != nil {
@@ -190,6 +225,57 @@ private struct MusicGridCardView: View {
             titleText
         }
         .clipShape(.rect(cornerRadius: MusicGridStyle.cardRadius, style: .continuous))
+    }
+
+    private var effectiveDisplayState: MusicGridCardDisplayState {
+        isPressed && item.imageURL != nil ? .pressed : displayState
+    }
+
+    @ViewBuilder
+    private var possibilityGlow: some View {
+        let glowOpacity = effectiveDisplayState.glowOpacity(for: item.discoveryPossibility)
+
+        if item.imageURL != nil, glowOpacity > 0 {
+            RadialGradient(
+                colors: [
+                    AppColor.GreenNormal.color.opacity(glowOpacity),
+                    AppColor.GreenNormal.color.opacity(0)
+                ],
+                center: .topTrailing,
+                startRadius: MusicGridStyle.glowStartRadius,
+                endRadius: item.kind == .large ? MusicGridStyle.largeGlowEndRadius : MusicGridStyle.smallGlowEndRadius
+            )
+            .blendMode(.screen)
+        }
+    }
+
+    @ViewBuilder
+    private var stateOverlay: some View {
+        if item.imageURL != nil {
+            ZStack {
+                AppColor.GrayScaleBlack.color
+                    .opacity(effectiveDisplayState.imageDimOpacity)
+
+                if effectiveDisplayState.selectedHighlightOpacity > 0 {
+                    RadialGradient(
+                        colors: [
+                            AppColor.GreenLight.color.opacity(effectiveDisplayState.selectedHighlightOpacity),
+                            AppColor.GreenLight.color.opacity(0)
+                        ],
+                        center: .center,
+                        startRadius: MusicGridStyle.glowStartRadius,
+                        endRadius: item.kind == .large ? MusicGridStyle.largeGlowEndRadius : MusicGridStyle.smallGlowEndRadius
+                    )
+                    .blendMode(.screen)
+                }
+
+                if effectiveDisplayState.greenTintOpacity > 0 {
+                    AppColor.GreenNormal.color
+                        .opacity(effectiveDisplayState.greenTintOpacity)
+                        .blendMode(.screen)
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -296,6 +382,88 @@ private struct MusicGridFeaturedLayout: Layout {
     }
 }
 
+private enum MusicGridCardDisplayState: Equatable {
+    case `default`
+    case selected
+    case pressed
+    case unselected
+
+    var imageDimOpacity: Double {
+        switch self {
+        case .default, .selected, .pressed:
+            MusicGridStyle.imageDimOpacity
+        case .unselected:
+            MusicGridStyle.unselectedDimOpacity
+        }
+    }
+
+    var greenTintOpacity: Double {
+        switch self {
+        case .selected:
+            MusicGridStyle.selectedTintOpacity
+        case .pressed:
+            MusicGridStyle.pressedTintOpacity
+        case .default, .unselected:
+            0
+        }
+    }
+
+    var selectedHighlightOpacity: Double {
+        self == .selected ? MusicGridStyle.selectedHighlightOpacity : 0
+    }
+
+    func glowOpacity(for possibility: MusicGridItem.DiscoveryPossibility) -> Double {
+        switch self {
+        case .pressed:
+            MusicGridStyle.midGlowOpacity
+        case .selected:
+            MusicGridStyle.selectedGlowOpacity
+        case .default, .unselected:
+            possibility.glowOpacity
+        }
+    }
+}
+
+private extension MusicGridItem.DiscoveryPossibility {
+    var glowOpacity: Double {
+        switch self {
+        case .high:
+            MusicGridStyle.highGlowOpacity
+        case .mid:
+            MusicGridStyle.midGlowOpacity
+        case .low:
+            MusicGridStyle.lowGlowOpacity
+        }
+    }
+}
+
+private struct MusicGridCardButtonStyle: PrimitiveButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Button(action: configuration.trigger) {
+            configuration.label
+        }
+        .buttonStyle(MusicGridCardPressStateStyle())
+    }
+}
+
+private struct MusicGridCardPressStateStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .environment(\.isMusicGridCardPressed, configuration.isPressed)
+    }
+}
+
+private struct MusicGridCardPressedKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+private extension EnvironmentValues {
+    var isMusicGridCardPressed: Bool {
+        get { self[MusicGridCardPressedKey.self] }
+        set { self[MusicGridCardPressedKey.self] = newValue }
+    }
+}
+
 private extension MusicGridItem {
     var titleStyle: AppFontStyle {
         kind == .large ? AppFont.title : AppFont.headline
@@ -320,6 +488,17 @@ private enum MusicGridStyle {
     static let cardRadius: CGFloat = 20
     static let plusIconSize: CGFloat = 28
     static let imageDimOpacity = 0.12
+    static let unselectedDimOpacity = 0.66
+    static let pressedTintOpacity = 0.1
+    static let selectedTintOpacity = 0.18
+    static let selectedHighlightOpacity = 0.38
+    static let highGlowOpacity = 0.38
+    static let midGlowOpacity = 0.18
+    static let lowGlowOpacity = 0.04
+    static let selectedGlowOpacity = 0.3
+    static let glowStartRadius: CGFloat = 0
+    static let smallGlowEndRadius: CGFloat = 150
+    static let largeGlowEndRadius: CGFloat = 280
     static let gradientOpacity = 0.78
 }
 
