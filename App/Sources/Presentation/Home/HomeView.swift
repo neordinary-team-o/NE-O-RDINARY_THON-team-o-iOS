@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import PopupView
 
 struct HomeView: View {
     @Environment(\.navRouter) private var router
+    @Environment(\.safeAreaInsets) private var safeArea
 
     @StateObject private var store = StoreOf<HomeReducer>(
         initialState: HomeReducer.State(),
@@ -28,13 +30,17 @@ struct HomeView: View {
                             .padding(.bottom, AppSpacing.xl)
                         sectionTitle
                             .padding(.bottom, AppSpacing.md)
+                            .contentShape(Rectangle())
+                            .onTapGesture(perform: dismissKeyboard)
                         
                         MusicGridView(
                             items: store.state.musicGridItems,
                             onAddTap: {
+                                dismissKeyboard()
                                 store.send(.addMusicTapped)
                             },
                             onTap: { item in
+                                dismissKeyboard()
                                 store.send(.musicItemTapped(item))
                             }
                         )
@@ -45,9 +51,31 @@ struct HomeView: View {
                 .padding(.top, AppSpacing.sm)
                 .padding(.bottom, HomeLayout.bottomPadding)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
-        
-        .background(AppColor.GrayScaleBlack.color.ignoresSafeArea())
+        .background {
+            AppColor.GrayScaleBlack.color
+                .ignoresSafeArea()
+                .onTapGesture(perform: dismissKeyboard)
+        }
+        .popup(isPresented: musicCardPresentedBinding) {
+            musicCardPopup
+        } customize: {
+            $0
+                .type(.floater())
+                .position(.bottom)
+                .appearFrom(.bottomSlide)
+                .dragToDismiss(true)
+                .closeOnTap(false)
+                .closeOnTapOutside(true)
+                .backgroundColor(AppColor.GrayScaleBlack.color.opacity(0.45))
+                .displayMode(.overlay)
+                .animation(.bouncy)
+        }
+    }
+
+    private func dismissKeyboard() {
+        endTextEditing()
     }
 
     private var topAppBar: some View {
@@ -86,6 +114,62 @@ struct HomeView: View {
             keyboardType: .default,
             isSecure: false,
             isSearch: true
+        )
+    }
+
+
+    @ViewBuilder
+    private var musicCardPopup: some View {
+        if let selectedMusicCard = store.state.selectedMusicCard {
+            MusicCard(
+                entity: selectedMusicCard,
+                reviewText: musicCardReviewTextBinding,
+                isReviewCompleted: musicCardReviewCompletedBinding,
+                onReviewSendTap: { reviewText in
+                    store.send(.musicCardReviewSubmitted(reviewText))
+                },
+                onReviewEditTap: {
+                    store.send(.musicCardReviewEditTapped)
+                },
+                onShareTap: {
+                    store.send(.musicCardShareTapped)
+                },
+                onCloseTap: {
+                    store.send(.musicCardDismissed)
+                }
+            )
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.bottom, safeArea.bottom)
+        }
+    }
+
+
+    private var musicCardReviewTextBinding: Binding<String> {
+        Binding(
+            get: { store.state.musicCardReviewText },
+            set: { store.send(.musicCardReviewTextChanged($0)) }
+        )
+    }
+
+    private var musicCardReviewCompletedBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.isMusicCardReviewCompleted },
+            set: { isCompleted in
+                if !isCompleted {
+                    store.send(.musicCardReviewEditTapped)
+                }
+            }
+        )
+    }
+
+    private var musicCardPresentedBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.selectedMusicCard != nil },
+            set: { isPresented in
+                if !isPresented {
+                    store.send(.musicCardDismissed)
+                }
+            }
         )
     }
 

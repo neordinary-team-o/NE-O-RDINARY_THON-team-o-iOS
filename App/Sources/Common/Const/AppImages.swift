@@ -18,4 +18,7 @@ enum AppImages: Sendable {
     static let topLogo = "topLogo"
     static let myPage = "myPage"
     static let plus = "plus"
+    static let share = "share"
+    static let x = "x"
+    static let pencil = "pencil"
 }
