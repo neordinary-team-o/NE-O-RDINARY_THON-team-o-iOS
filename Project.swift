@@ -12,6 +12,8 @@ let project = Project(
             bundleId: "$(APP_BASE_BUNDLE_IDENTIFIER)",
             deploymentTargets: .iOS("26.0"),
             infoPlist: .extendingDefault(with: [
+                "CFBundleDisplayName": "$(DISPLAY_NAME)",
+                "CFBundleName": "$(DISPLAY_NAME)",
                 "UILaunchStoryboardName": .string("LaunchScreen"),
                 "UIAppFonts": .array([
                     .string("Pretendard-Black.otf"),
