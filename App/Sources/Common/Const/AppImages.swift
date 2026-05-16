@@ -24,4 +24,5 @@ enum AppImages: Sendable {
     static let popupBack = "popupBack"
     static let pickAx = "pickax"
     static let challenge = "challenge"
+    static let appLogo = "logo"
 }
