@@ -107,14 +107,14 @@ struct HomeView: View {
             HStack {
                 Spacer()
 
-                Image(AppImages.myPage)
+                Image(AppImages.plus)
                     .resizable()
                     .scaledToFit()
                     .frame(width: HomeLayout.profileIconSize, height: HomeLayout.profileIconSize)
                     .asButton(haptic: true) {
                         router.push(.setting(.root))
                     }
-                    .accessibilityLabel("마이페이지")
+                    .accessibilityLabel("추가")
             }
             .padding(.horizontal, HomeLayout.profileHorizontalPadding)
         }
@@ -283,16 +283,9 @@ struct HomeView: View {
     }
 
     private var sectionTitle: some View {
-        HStack(spacing: 0) {
-            Text(store.state.userName)
-                .appFont(AppFont.heading, font: .semiFont)
-                .foregroundStyle(AppColor.GreenLightActive.color)
-
-            Text(" 님이 발굴한 곡이예요")
-                .appFont(AppFont.heading, font: .semiFont)
-                .foregroundStyle(AppColor.GrayScaleWhite.color)
-        }
-        .accessibilityElement(children: .combine)
+        Text("내가 발굴한 곡이예요")
+            .appFont(AppFont.heading, font: .semiFont)
+            .foregroundStyle(AppColor.GrayScaleWhite.color)
     }
 }
 
